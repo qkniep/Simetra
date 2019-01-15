@@ -1,2 +1,3 @@
 # Artemis
-Low poly terrain generation.
+
+This project is currently under construction...
