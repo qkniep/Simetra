@@ -40,25 +40,46 @@ GLuint vao, vbo, elementbuffer;
 
 
 void generatePlane() {
-	FastNoise noise = FastNoise(46);
+	FastNoise noise = FastNoise(47);
 
 	for (int x = 0; x < SIZE+1; ++x) {
 		for (int z = 0; z < SIZE+1; ++z) {
 			float fx = x, fz = z;
-			float height = noise.GetSimplex(x, z);
+			//int biome = (int) round(1.5f * (noise.GetCellular(x, z) + 1));
+			float height = noise.GetSimplex(x, z)
+				+ .5f  * noise.GetSimplex(2 * x, 2 * z)
+				+ .25f * noise.GetSimplex(4 * x, 4 * z);
+
+			//if (biome < 3) height = -1.75;
 
 			float colorR = 0, colorG = 0, colorB = 0;
-			if (height < 0.1f) {
-				colorB = (rand() % 256) / 256.f;
-			} else if (height < 0.8f) {
-				colorG = (rand() % 256) / 256.f;
+			if (height < -0.5f) {
+				float r = rand() % 24 / 256.f;
+				colorR = 0.407f * (1 + r);
+				colorG = 0.427f * (1 + r);
+				colorB = 0.878f * (1 + r);
+			} else if (height < 0.6f) {
+				float r = rand() % 24 / 256.f;
+				colorR = 0.4140625f * (1 + r);
+				colorG = 0.6875f * (1 + r);
+				colorB = 0.296875f * (1 + r);
+			} else if (height < 0.9) {
+				height += .5f * noise.GetSimplex(8 * x, 8 * z);
+				int r = rand() % 32;
+				colorR = (160 + r) / 256.f;
+				colorG = (160 + r) / 256.f;
+				colorB = (160 + r) / 256.f;
 			} else {
-				colorR = (rand() % 256) / 256.f;
+				height += .5f * noise.GetSimplex(8 * x, 8 * z);
+				colorR = (230 + rand() % 16) / 256.f;
+				colorG = (230 + rand() % 16) / 256.f;
+				colorB = 1;
 			}
 
+			height += 1.75;
+			height *= 0.4f;
+			height = powf(height, 4.6);
 			height *= 10;
-			height += 10;
-			height = powf(height, 1.2);
 
 			vertices.push_back({fx, height, -fz, colorR, colorG, colorB});
 		}

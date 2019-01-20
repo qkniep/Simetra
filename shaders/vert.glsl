@@ -4,7 +4,7 @@ uniform mat4 MVP;
 layout(location=0) in vec3 vPos;
 layout(location=1) in vec3 vCol;
 //layout(location=1) in vec2 vTex;
-out vec3 color;
+flat out vec3 color;
 //out vec2 texUV;
 
 void main() {

@@ -1,6 +1,6 @@
 #version 410
 
-in vec3 color;
+flat in vec3 color;
 //in vec2 texUV;
 out vec4 fragColor;
 //uniform sampler2D texSampler;
