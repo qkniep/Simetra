@@ -10,10 +10,8 @@
 #include <map>
 #include <vector>
 
+#include "world.hpp"
 #include "shader.hpp"
-
-#define X 0.52573111212
-#define Z 0.85065080835
 
 
 void key_callback(GLFWwindow* window, int key, int scan, int action, int mods);
@@ -25,88 +23,15 @@ float camX = 0, camY = 0, camZ = 0;
 float camSpeed = 15;
 
 
-struct vertex {
-	GLfloat x, y, z;
-	GLfloat r, g, b;
-};
-
-std::vector<vertex> vertices;
-std::vector<unsigned int> indices;
-
-GLuint vao, vbo, elementbuffer;
-
-
-#define SIZE 128
-
-
-void generatePlane() {
-	FastNoise noise = FastNoise(47);
-
-	for (int x = 0; x < SIZE+1; ++x) {
-		for (int z = 0; z < SIZE+1; ++z) {
-			float fx = x, fz = z;
-			//int biome = (int) round(1.5f * (noise.GetCellular(x, z) + 1));
-			float height = noise.GetSimplex(x, z)
-				+ .5f  * noise.GetSimplex(2 * x, 2 * z)
-				+ .25f * noise.GetSimplex(4 * x, 4 * z);
-
-			//if (biome < 3) height = -1.75;
-
-			float colorR = 0, colorG = 0, colorB = 0;
-			if (height < -0.5f) {
-				float r = rand() % 24 / 256.f;
-				colorR = 0.407f * (1 + r);
-				colorG = 0.427f * (1 + r);
-				colorB = 0.878f * (1 + r);
-			} else if (height < 0.6f) {
-				float r = rand() % 24 / 256.f;
-				colorR = 0.4140625f * (1 + r);
-				colorG = 0.6875f * (1 + r);
-				colorB = 0.296875f * (1 + r);
-			} else if (height < 0.9) {
-				height += .5f * noise.GetSimplex(8 * x, 8 * z);
-				int r = rand() % 32;
-				colorR = (160 + r) / 256.f;
-				colorG = (160 + r) / 256.f;
-				colorB = (160 + r) / 256.f;
-			} else {
-				height += .5f * noise.GetSimplex(8 * x, 8 * z);
-				colorR = (230 + rand() % 16) / 256.f;
-				colorG = (230 + rand() % 16) / 256.f;
-				colorB = 1;
-			}
-
-			height += 1.75;
-			height *= 0.4f;
-			height = powf(height, 4.6);
-			height *= 10;
-
-			vertices.push_back({fx, height, -fz, colorR, colorG, colorB});
-		}
-	}
-
-	for (int x = 0; x < SIZE; ++x) {
-		for (int z = 0; z < SIZE; ++z) {
-			//float fx = x, fz = z;
-			//float height = 5 * noise.GetSimplex(x, z);
-			//vertices.push_back({fx, height, fz, height / 10.f + .5f, 0, 0});
-
-			unsigned int v = x * (SIZE + 1) + z;
-			unsigned int quad[] = {
-				v, v + SIZE + 1, v + SIZE + 2,
-				v, v + SIZE + 2, v + 1,
-			};
-			indices.insert(indices.end(), quad, quad + 6);
-		}
-	}
-}
+GLuint vao;
 
 
 int main() {
-	generatePlane();
+	World world(100);
 
 	static bool macMoved = false;  // part of TEMPORARY WORKAROUND
 
+	//TODO: write wrapper around window
 	GLFWwindow *window = NULL;
 	const GLubyte *renderer, *version;
 	GLuint mvp_loc, shader;
@@ -145,17 +70,7 @@ int main() {
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(struct vertex), &vertices[0], GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*) 0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (void*) (sizeof(float) * 3));
-
-	glGenBuffers(1, &elementbuffer);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+	world.load();
 
 	shader = LoadShaders("shaders/vert.glsl", "shaders/frag.glsl");
 	mvp_loc = glGetUniformLocation(shader, "MVP");
@@ -185,7 +100,7 @@ int main() {
 
 		glBindVertexArray(vao);
 
-		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, (void*) 0);
+		world.render(mvp_loc, mvp);
 
 		glfwPollEvents();
 		updateControls();
