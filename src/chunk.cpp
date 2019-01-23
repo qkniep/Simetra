@@ -9,8 +9,8 @@
 #include "FastNoise/FastNoise.h"
 
 
-Chunk::Chunk() : xPos(-1), zPos(-1) {
-}
+//Chunk::Chunk() : xPos(-1), zPos(-1) {
+//}
 
 
 Chunk::Chunk(int x, int z) : xPos(x), zPos(z), loaded(false) {
@@ -18,15 +18,17 @@ Chunk::Chunk(int x, int z) : xPos(x), zPos(z), loaded(false) {
 
 
 Chunk::~Chunk() {
-	if (loaded) {
-		GLuint buffers[] = {vao, vbo, elementbuffer};
-		glDeleteBuffers(3, buffers);
-		std::cout << "You killed an innocent chunk :(" << std::endl;
-	}
+	if (!loaded) return;
+
+	GLuint buffers[] = {vao, vbo, elementbuffer};
+	glDeleteBuffers(3, buffers);
+	std::cout << "You killed an innocent chunk (x: " << xPos << "  z: " << zPos << ") :(" << std::endl;
 }
 
 
 void Chunk::load() {
+	if (zPos < 0 || loaded) return;
+
 	generateTerrain();
 
 	glGenVertexArrays(1, &vao);
@@ -110,6 +112,8 @@ void Chunk::generateTerrain() {
 
 
 void Chunk::render(GLuint mvp_loc, glm::mat4 mvp) {
+	if (!loaded) return;
+
 	glBindVertexArray(vao);
 
 	glm::mat4 m(1);

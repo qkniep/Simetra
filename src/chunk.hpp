@@ -16,9 +16,8 @@ class Chunk {
 public:
 	static const int chunkSize = 32;
 
-	int xPos, zPos;
-
 private:
+	int xPos, zPos;
 	bool loaded;
 
 	std::vector<vertex> vertices;
@@ -27,7 +26,7 @@ private:
 
 
 public:
-	Chunk();
+//	Chunk();
 	Chunk(int x, int z);
 	~Chunk();
 

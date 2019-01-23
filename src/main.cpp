@@ -86,7 +86,8 @@ int main() {
 		m = glm::mat4(1);
 		v = glm::lookAtLH(
 			glm::vec3(camX, camY, camZ), // camera position
-			glm::vec3(camX, camY, camZ + 1), // look in front of you
+			//glm::vec3(camX, camY, camZ + 1), // look in front of you
+			glm::vec3(camX, camY - .5f, camZ + .5f), // look in front of you
 			glm::vec3(0, 1, 0) // head's up
 		);
 		p = glm::perspectiveLH(glm::radians(45.f), ratio, .1f, 512.f);
@@ -110,6 +111,8 @@ int main() {
 	}
 
 	glfwTerminate();
+
+	world.clean();
 
 	return 0;
 }
