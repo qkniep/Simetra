@@ -2,6 +2,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include <iostream>
 #include <stdlib.h>
 #include <math.h>
 
@@ -12,12 +13,24 @@ Chunk::Chunk() : xPos(-1), zPos(-1) {
 }
 
 
-Chunk::Chunk(int x, int z) : xPos(x), zPos(z) {
+Chunk::Chunk(int x, int z) : xPos(x), zPos(z), loaded(false) {
+}
+
+
+Chunk::~Chunk() {
+	if (loaded) {
+		GLuint buffers[] = {vao, vbo, elementbuffer};
+		glDeleteBuffers(3, buffers);
+		std::cout << "You killed an innocent chunk :(" << std::endl;
+	}
 }
 
 
 void Chunk::load() {
 	generateTerrain();
+
+	glGenVertexArrays(1, &vao);
+	glBindVertexArray(vao);
 
 	glGenBuffers(1, &vbo);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -30,6 +43,8 @@ void Chunk::load() {
 	glGenBuffers(1, &elementbuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+	loaded = true;
 }
 
 
@@ -39,12 +54,12 @@ void Chunk::generateTerrain() {
 	for (int x = 0; x < chunkSize+1; ++x) {
 		for (int z = 0; z < chunkSize+1; ++z) {
 			float fx = x, fz = z;
-			int xx = xPos * chunkSize + x;
-			int zz = zPos * chunkSize + z;
+			int globalX = xPos * chunkSize + x;
+			int globalZ = zPos * chunkSize + z;
 			//int biome = (int) round(1.5f * (noise.GetCellular(x, z) + 1));
-			float height = noise.GetSimplex(xx, zz)
-				+ .5f  * noise.GetSimplex(2 * xx, 2 * zz)
-				+ .25f * noise.GetSimplex(4 * xx, 4 * zz);
+			float height = noise.GetSimplex(globalX, globalZ)
+				+ .5f  * noise.GetSimplex(2 * globalX, 2 * globalZ)
+				+ .25f * noise.GetSimplex(4 * globalX, 4 * globalZ);
 
 			//if (biome < 3) height = -1.75;
 
@@ -60,13 +75,13 @@ void Chunk::generateTerrain() {
 				colorG = 0.6875f * (1 + r);
 				colorB = 0.296875f * (1 + r);
 			} else if (height < 0.9) {
-				height += .5f * noise.GetSimplex(8 * xx, 8 * zz);
+				height += .5f * noise.GetSimplex(8 * globalX, 8 * globalZ);
 				int r = rand() % 32;
 				colorR = (160 + r) / 256.f;
 				colorG = (160 + r) / 256.f;
 				colorB = (160 + r) / 256.f;
 			} else {
-				height += .5f * noise.GetSimplex(8 * xx, 8 * zz);
+				height += .5f * noise.GetSimplex(8 * globalX, 8 * globalZ);
 				colorR = (230 + rand() % 16) / 256.f;
 				colorG = (230 + rand() % 16) / 256.f;
 				colorB = 1;
@@ -77,7 +92,7 @@ void Chunk::generateTerrain() {
 			height = powf(height, 4.6);
 			height *= 10;
 
-			vertices.push_back({fx, height, -fz, colorR, colorG, colorB});
+			vertices.push_back({fx, height, fz, colorR, colorG, colorB});
 		}
 	}
 
@@ -95,6 +110,8 @@ void Chunk::generateTerrain() {
 
 
 void Chunk::render(GLuint mvp_loc, glm::mat4 mvp) {
+	glBindVertexArray(vao);
+
 	glm::mat4 m(1);
 	m = glm::translate(m, glm::vec3(xPos * chunkSize, 0, zPos * chunkSize));
 	mvp = mvp * m;

@@ -7,6 +7,7 @@
 #include "FastNoise/FastNoise.h"
 
 #include <cmath>
+#include <iostream>
 #include <map>
 #include <vector>
 
@@ -22,13 +23,10 @@ double lastFrameTime = 0;
 float camX = 0, camY = 0, camZ = 0;
 float camSpeed = 15;
 
-
-GLuint vao;
+World world(100);
 
 
 int main() {
-	World world(100);
-
 	static bool macMoved = false;  // part of TEMPORARY WORKAROUND
 
 	//TODO: write wrapper around window
@@ -67,9 +65,6 @@ int main() {
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-
 	world.load();
 
 	shader = LoadShaders("shaders/vert.glsl", "shaders/frag.glsl");
@@ -89,16 +84,14 @@ int main() {
 		glUseProgram(shader);
 
 		m = glm::mat4(1);
-		v = glm::lookAt(
+		v = glm::lookAtLH(
 			glm::vec3(camX, camY, camZ), // camera position
-			glm::vec3(camX, camY, camZ - 1), // look in front of you
+			glm::vec3(camX, camY, camZ + 1), // look in front of you
 			glm::vec3(0, 1, 0) // head's up
 		);
-		p = glm::perspective(glm::radians(45.f), ratio, .1f, 256.f);
+		p = glm::perspectiveLH(glm::radians(45.f), ratio, .1f, 512.f);
 		mvp = p * v * m;
 		glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-		glBindVertexArray(vao);
 
 		world.render(mvp_loc, mvp);
 
@@ -125,8 +118,14 @@ int main() {
 void updateControls() {
 	double currentTime = glfwGetTime();
 	double deltaTime = currentTime - lastFrameTime;
-	if (controls[0])
+	if (controls[0]) {
+		float oldCamZ = camZ;
 		camZ += camSpeed * deltaTime;
+		if ((int) oldCamZ % Chunk::chunkSize == Chunk::chunkSize - 1 && (int) camZ % Chunk::chunkSize == 0) {
+			world.loadNextRow();
+			std::cout << "You crossed the border!!!" << std::endl;
+		}
+	}
 	if (controls[1])
 		camZ -= camSpeed * deltaTime;
 	if (controls[2])
@@ -143,12 +142,12 @@ void updateControls() {
 
 void key_callback(GLFWwindow* window, int key, int scan, int action, int mods) {
 	switch (key) {
-		case GLFW_KEY_S:
-		case GLFW_KEY_DOWN:
-			controls[0] = (action != GLFW_RELEASE);
-			break;
 		case GLFW_KEY_W:
 		case GLFW_KEY_UP:
+			controls[0] = (action != GLFW_RELEASE);
+			break;
+		case GLFW_KEY_S:
+		case GLFW_KEY_DOWN:
 			controls[1] = (action != GLFW_RELEASE);
 			break;
 		case GLFW_KEY_D:

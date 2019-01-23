@@ -13,18 +13,23 @@ struct vertex {
 
 
 class Chunk {
+public:
 	static const int chunkSize = 32;
 
 	int xPos, zPos;
 
+private:
+	bool loaded;
+
 	std::vector<vertex> vertices;
 	std::vector<unsigned int> indices;
-	GLuint vao, vbo, elementbuffer, mvp_loc;
+	GLuint vao, vbo, elementbuffer;
 
 
 public:
 	Chunk();
 	Chunk(int x, int z);
+	~Chunk();
 
 	void load();
 	void render(GLuint mvp_loc, glm::mat4 mvp);
