@@ -1,16 +1,12 @@
 #include "chunk.hpp"
 
+#include <math.h>
+#include <stdlib.h>
+#include <iostream>
+
 #include <glm/gtc/type_ptr.hpp>
 
-#include <iostream>
-#include <stdlib.h>
-#include <math.h>
-
 #include "FastNoise/FastNoise.h"
-
-
-//Chunk::Chunk() : xPos(-1), zPos(-1) {
-//}
 
 
 Chunk::Chunk(int x, int z) : xPos(x), zPos(z), loaded(false) {
@@ -103,7 +99,8 @@ void Chunk::generateTerrain() {
 			unsigned int v = x * (chunkSize + 1) + z;
 			unsigned int quad[] = {
 				v, v + chunkSize + 1, v + chunkSize + 2,
-				v, v + chunkSize + 2, v + 1,
+				//v, v + chunkSize + 2, v + 1,
+				v, v + 1, v + chunkSize + 2,
 			};
 			indices.insert(indices.end(), quad, quad + 6);
 		}

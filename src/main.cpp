@@ -1,26 +1,24 @@
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "FastNoise/FastNoise.h"
-
-#include <cmath>
+#include <math.h>
 #include <iostream>
 #include <map>
 #include <vector>
 
-#include "world.hpp"
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 #include "shader.hpp"
+#include "world.hpp"
+#include "FastNoise/FastNoise.h"
 
 
-void key_callback(GLFWwindow* window, int key, int scan, int action, int mods);
+void keyCallback(GLFWwindow* window, int key, int scan, int action, int mods);
 void updateControls();
 
 bool controls[6] = {false, false, false, false, false, false};
 double lastFrameTime = 0;
-float camX = 0, camY = 0, camZ = 0;
+float camX = Chunk::chunkSize / 2, camY = 50, camZ = 0;
 float camSpeed = 15;
 
 World world(100);
@@ -52,7 +50,7 @@ int main() {
 		return 1;
 	}
 	glfwMakeContextCurrent(window);
-	glfwSetKeyCallback(window, key_callback);
+	glfwSetKeyCallback(window, keyCallback);
 
 	glewExperimental = GL_TRUE;  // prevent SEGFAULT
 	glewInit();                  // on macOS
@@ -67,7 +65,7 @@ int main() {
 
 	world.load();
 
-	shader = LoadShaders("shaders/vert.glsl", "shaders/frag.glsl");
+	shader = loadShaders("shaders/vert.glsl", "shaders/frag.glsl");
 	mvp_loc = glGetUniformLocation(shader, "MVP");
 
 	while (!glfwWindowShouldClose(window)) {
@@ -121,14 +119,14 @@ int main() {
 void updateControls() {
 	double currentTime = glfwGetTime();
 	double deltaTime = currentTime - lastFrameTime;
-	if (controls[0]) {
+	//if (controls[0]) {
 		float oldCamZ = camZ;
 		camZ += camSpeed * deltaTime;
 		if ((int) oldCamZ % Chunk::chunkSize == Chunk::chunkSize - 1 && (int) camZ % Chunk::chunkSize == 0) {
 			world.loadNextRow();
 			std::cout << "You crossed the border!!!" << std::endl;
 		}
-	}
+	//}
 	if (controls[1])
 		camZ -= camSpeed * deltaTime;
 	if (controls[2])
@@ -143,7 +141,7 @@ void updateControls() {
 }
 
 
-void key_callback(GLFWwindow* window, int key, int scan, int action, int mods) {
+void keyCallback(GLFWwindow* window, int key, int scan, int action, int mods) {
 	switch (key) {
 		case GLFW_KEY_W:
 		case GLFW_KEY_UP:

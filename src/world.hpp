@@ -1,3 +1,6 @@
+#ifndef WORLD_HPP
+#define WORLD_HPP
+
 #include <queue>
 #include <vector>
 
@@ -20,3 +23,5 @@ public:
 	void loadNextRow();
 	void clean();
 };
+
+#endif  // WORLD_HPP

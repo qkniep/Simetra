@@ -4,7 +4,7 @@
 #include <queue>
 
 
-World::World(int s) : seed(s), allChunks(4 * 7, NULL), deletePtr(21), currentRow(3) {
+World::World(int s) : seed(s), allChunks(4 * 7, nullptr), deletePtr(21), currentRow(3) {
 	allChunks[0] = new Chunk(0, 0);
 
 	allChunks[1] = new Chunk(-1, 1);
@@ -30,7 +30,7 @@ World::World(int s) : seed(s), allChunks(4 * 7, NULL), deletePtr(21), currentRow
 
 void World::load() {
 	for (Chunk *c : allChunks) {
-		if (c == NULL) continue;
+		if (c == nullptr) continue;
 		c->load();
 	}
 }
@@ -38,7 +38,7 @@ void World::load() {
 
 void World::render(GLuint mvp_loc, glm::mat4 mvp) {
 	for (Chunk *c : allChunks) {
-		if (c == NULL) continue;
+		if (c == nullptr) continue;
 		c->render(mvp_loc, mvp);
 	}
 }
@@ -46,7 +46,7 @@ void World::render(GLuint mvp_loc, glm::mat4 mvp) {
 
 void World::loadNextRow() {
 	for (int i = deletePtr; i < deletePtr + 7; ++i) {
-		if (allChunks[i] == NULL) continue;
+		if (allChunks[i] == nullptr) continue;
 		delete allChunks[i];
 		allChunks[i] = 0;
 	}
@@ -68,7 +68,7 @@ void World::loadNextRow() {
 
 void World::clean() {
 	for (Chunk* c : allChunks) {
-		if (c == NULL) continue;
+		if (c == nullptr) continue;
 		delete c;
 	}
 }
