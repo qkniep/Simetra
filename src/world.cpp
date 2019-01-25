@@ -17,13 +17,13 @@ World::World(int s) : seed(s), allChunks(4 * 7, nullptr), deletePtr(21), current
 	allChunks[9]  = new Chunk( 1, 2);
 	allChunks[4]  = new Chunk( 2, 2);
 
-	allChunks[(deletePtr - 3 * 7) % allChunks.size() + 5] = new Chunk(-3, currentRow);
-	allChunks[(deletePtr - 2 * 7) % allChunks.size() + 3] = new Chunk(-2, currentRow);
-	allChunks[(deletePtr - 1 * 7) % allChunks.size() + 1] = new Chunk(-1, currentRow);
+	allChunks[(deletePtr + 1 * 7) % allChunks.size() + 5] = new Chunk(-3, currentRow);
+	allChunks[(deletePtr + 2 * 7) % allChunks.size() + 3] = new Chunk(-2, currentRow);
+	allChunks[(deletePtr + 3 * 7) % allChunks.size() + 1] = new Chunk(-1, currentRow);
 	allChunks[deletePtr]                                  = new Chunk( 0, currentRow);
-	allChunks[(deletePtr - 1 * 7) % allChunks.size() + 2] = new Chunk( 1, currentRow);
-	allChunks[(deletePtr - 2 * 7) % allChunks.size() + 4] = new Chunk( 2, currentRow);
-	allChunks[(deletePtr - 3 * 7) % allChunks.size() + 6] = new Chunk( 3, currentRow);
+	allChunks[(deletePtr + 3 * 7) % allChunks.size() + 2] = new Chunk( 1, currentRow);
+	allChunks[(deletePtr + 2 * 7) % allChunks.size() + 4] = new Chunk( 2, currentRow);
+	allChunks[(deletePtr + 1 * 7) % allChunks.size() + 6] = new Chunk( 3, currentRow);
 	deletePtr = 0;
 }
 
@@ -48,7 +48,7 @@ void World::loadNextRow() {
 	for (int i = deletePtr; i < deletePtr + 7; ++i) {
 		if (allChunks[i] == nullptr) continue;
 		delete allChunks[i];
-		allChunks[i] = 0;
+		allChunks[i] = nullptr;
 	}
 
 	currentRow += 1;

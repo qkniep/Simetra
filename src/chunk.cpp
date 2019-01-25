@@ -16,14 +16,15 @@ Chunk::Chunk(int x, int z) : xPos(x), zPos(z), loaded(false) {
 Chunk::~Chunk() {
 	if (!loaded) return;
 
-	GLuint buffers[] = {vao, vbo, elementbuffer};
-	glDeleteBuffers(3, buffers);
+	GLuint buffers[] = {vbo, elementbuffer};
+	glDeleteBuffers(2, buffers);
+	glDeleteVertexArrays(1, &vao);
 	std::cout << "You killed an innocent chunk (x: " << xPos << "  z: " << zPos << ") :(" << std::endl;
 }
 
 
 void Chunk::load() {
-	if (zPos < 0 || loaded) return;
+	if (loaded) return;
 
 	generateTerrain();
 
@@ -43,6 +44,19 @@ void Chunk::load() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
 
 	loaded = true;
+}
+
+
+void Chunk::render(GLuint mvp_loc, glm::mat4 mvp) {
+	if (!loaded) return;
+
+	glBindVertexArray(vao);
+
+	glm::mat4 m(1);
+	m = glm::translate(m, glm::vec3(xPos * chunkSize, 0, zPos * chunkSize));
+	mvp = mvp * m;
+	glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
+	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, (void*) 0);
 }
 
 
@@ -105,17 +119,4 @@ void Chunk::generateTerrain() {
 			indices.insert(indices.end(), quad, quad + 6);
 		}
 	}
-}
-
-
-void Chunk::render(GLuint mvp_loc, glm::mat4 mvp) {
-	if (!loaded) return;
-
-	glBindVertexArray(vao);
-
-	glm::mat4 m(1);
-	m = glm::translate(m, glm::vec3(xPos * chunkSize, 0, zPos * chunkSize));
-	mvp = mvp * m;
-	glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
-	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, (void*) 0);
 }
