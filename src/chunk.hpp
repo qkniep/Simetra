@@ -11,6 +11,7 @@
 struct vertex {
 	GLfloat x, y, z;
 	GLfloat r, g, b;
+	GLfloat nx, ny, nz;
 };
 
 
