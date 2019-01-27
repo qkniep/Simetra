@@ -16,11 +16,14 @@ class World {
 
 public:
 	World(int s);
+	~World();
 
 	void load();
 	void render(GLuint mvp_loc, glm::mat4 mvp);
 
 	void loadNextRow();
+
+private:
 	void clean();
 };
 

@@ -1,8 +1,3 @@
-#include <math.h>
-#include <iostream>
-#include <map>
-#include <vector>
-
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -10,7 +5,6 @@
 
 #include "shader.hpp"
 #include "world.hpp"
-#include "FastNoise/FastNoise.h"
 
 
 void keyCallback(GLFWwindow* window, int key, int scan, int action, int mods);
@@ -18,7 +12,7 @@ void updateControls();
 
 bool controls[6] = {false, false, false, false, false, false};
 double lastFrameTime = 0;
-float camX = Chunk::chunkSize / 2, camY = 50, camZ = 0;
+float camX = Chunk::chunkSize / 2, camY = 100, camZ = -96;
 float camSpeed = 15;
 
 World world(100);
@@ -28,8 +22,7 @@ int main() {
 	static bool macMoved = false;  // part of TEMPORARY WORKAROUND
 
 	//TODO: write wrapper around window
-	GLFWwindow *window = NULL;
-	const GLubyte *renderer, *version;
+	GLFWwindow* window = nullptr;
 	GLuint mvp_loc, shader;
 
 	if (!glfwInit()) {
@@ -43,7 +36,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(640, 480, "Artemis", NULL, NULL);
+	window = glfwCreateWindow(640, 480, "Artemis", nullptr, nullptr);
 	if (!window) {
 		fprintf(stderr, "ERROR: could not open window with GLFW3\n");
 		glfwTerminate();
@@ -54,11 +47,6 @@ int main() {
 
 	glewExperimental = GL_TRUE;  // prevent SEGFAULT
 	glewInit();                  // on macOS
-
-	renderer = glGetString(GL_RENDERER);
-	version = glGetString(GL_VERSION);
-	printf("Renderer: %s\n", renderer);
-	printf( "OpenGL version supported %s\n", version );
 
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
@@ -83,10 +71,9 @@ int main() {
 
 		m = glm::mat4(1);
 		v = glm::lookAtLH(
-			glm::vec3(camX, camY, camZ), // camera position
-			//glm::vec3(camX, camY, camZ + 1), // look in front of you
-			glm::vec3(camX, camY - .5f, camZ + .5f), // look in front of you
-			glm::vec3(0, 1, 0) // head's up
+			glm::vec3(camX, camY, camZ),               // camera position
+			glm::vec3(camX, camY - .75f, camZ + .25f), // position to look at
+			glm::vec3(0, 1, 0)                         // up direction
 		);
 		p = glm::perspectiveLH(glm::radians(45.f), ratio, .1f, 512.f);
 		mvp = p * v * m;
@@ -110,8 +97,6 @@ int main() {
 
 	glfwTerminate();
 
-	world.clean();
-
 	return 0;
 }
 
@@ -124,7 +109,6 @@ void updateControls() {
 		camZ += camSpeed * deltaTime;
 		if ((int) oldCamZ % Chunk::chunkSize == Chunk::chunkSize - 1 && (int) camZ % Chunk::chunkSize == 0) {
 			world.loadNextRow();
-			std::cout << "You crossed the border!!!" << std::endl;
 		}
 	//}
 	if (controls[1])
@@ -141,7 +125,7 @@ void updateControls() {
 }
 
 
-void keyCallback(GLFWwindow* window, int key, int scan, int action, int mods) {
+void keyCallback(GLFWwindow* /*window*/, int key, int /*scan*/, int action, int /*mods*/) {
 	switch (key) {
 		case GLFW_KEY_W:
 		case GLFW_KEY_UP:

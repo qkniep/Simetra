@@ -1,8 +1,5 @@
 #include "world.hpp"
 
-#include <iostream>
-#include <queue>
-
 
 World::World(int s) : seed(s), allChunks(4 * 7, nullptr), deletePtr(21), currentRow(3) {
 	allChunks[0] = new Chunk(0, 0);
@@ -25,6 +22,11 @@ World::World(int s) : seed(s), allChunks(4 * 7, nullptr), deletePtr(21), current
 	allChunks[(deletePtr + 2 * 7) % allChunks.size() + 4] = new Chunk( 2, currentRow);
 	allChunks[(deletePtr + 1 * 7) % allChunks.size() + 6] = new Chunk( 3, currentRow);
 	deletePtr = 0;
+}
+
+
+World::~World() {
+	clean();
 }
 
 

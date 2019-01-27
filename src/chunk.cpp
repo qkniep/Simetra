@@ -1,8 +1,6 @@
 #include "chunk.hpp"
 
 #include <math.h>
-#include <stdlib.h>
-#include <iostream>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -19,7 +17,6 @@ Chunk::~Chunk() {
 	GLuint buffers[] = {vbo, elementbuffer};
 	glDeleteBuffers(2, buffers);
 	glDeleteVertexArrays(1, &vao);
-	std::cout << "You killed an innocent chunk (x: " << xPos << "  z: " << zPos << ") :(" << std::endl;
 }
 
 
