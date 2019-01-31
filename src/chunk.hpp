@@ -7,6 +7,8 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
+#include "FastNoise/FastNoise.h"
+
 
 struct vertex {
 	GLfloat x, y, z;
@@ -36,7 +38,9 @@ public:
 	void render(GLuint mvp_loc, glm::mat4 mvp);
 
 private:
-	void generateTerrain();
+	vertex generateVertex(const FastNoise& noise, float x, float z);
+	void calculateNormals(vertex* v0);
+	void generateDelaunayTerrain();
 };
 
 #endif  // CHUNK_HPP

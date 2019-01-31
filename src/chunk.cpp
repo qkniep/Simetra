@@ -1,12 +1,14 @@
 #include "chunk.hpp"
 
 #include <math.h>
+#include <iostream>
 
 #include <glm/gtc/type_ptr.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/normal.hpp>
 
-#include "FastNoise/FastNoise.h"
+#include "thinks/poisson_disk_sampling/poisson_disk_sampling.hpp"
+#include "Bl4ckb0ne/delaunay_triangulation/delaunay.h"
 
 
 
@@ -26,7 +28,8 @@ Chunk::~Chunk() {
 void Chunk::load() {
 	if (loaded) return;
 
-	generateTerrain();
+	//generateTerrain();
+	generateDelaunayTerrain();
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -62,84 +65,97 @@ void Chunk::render(GLuint mvp_loc, glm::mat4 mvp) {
 }
 
 
-void Chunk::generateTerrain() {
-	vertices = std::vector<vertex>(chunkSize * chunkSize * 2 + chunkSize * 2 + 1);
-	FastNoise noise = FastNoise(47);
+vertex Chunk::generateVertex(const FastNoise& noise, float x, float z) {
+	float globalX = xPos * chunkSize + x;
+	float globalZ = zPos * chunkSize + z;
 
-	int i = 0;
-	for (int x = 0; x < chunkSize+1; ++x) {
-		for (int z = 0; z < chunkSize+1; ++z) {
-			float fx = x, fz = z;
-			int globalX = xPos * chunkSize + x;
-			int globalZ = zPos * chunkSize + z;
-			//int biome = (int) round(1.5f * (noise.GetCellular(x, z) + 1));
-			float height = noise.GetSimplex(globalX, globalZ)
-				+ .5f  * noise.GetSimplex(2 * globalX, 2 * globalZ)
-				+ .25f * noise.GetSimplex(4 * globalX, 4 * globalZ);
+	float height = noise.GetSimplex(4 * globalX, 4 * globalZ)
+		+ .75f  * noise.GetSimplex(8 * globalX, 8 * globalZ)
+		+ .5f * noise.GetSimplex(16 * globalX, 16 * globalZ);
+		//+ .25f * noise.GetSimplex(32 * globalX, 32 * globalZ);
 
-			//if (biome < 3) height = -1.75;
-
-			float colorR = 0, colorG = 0, colorB = 0;
-			if (height < -0.5f) {
-				float r = rand() % 24 / 256.f;
-				colorR = 0.407f * (1 + r);
-				colorG = 0.427f * (1 + r);
-				colorB = 0.878f * (1 + r);
-			} else if (height < 0.9f) {
-				float r = rand() % 24 / 256.f;
-				//colorR = 0.4140625f * (1 + r);
-				//colorG = 0.6875f * (1 + r);
-				//colorB = 0.296875f * (1 + r);
-				colorR = 0.4140625f;
-				colorG = 0.6875f;
-				colorB = 0.296875f;
-			} else if (height < 1.3f) {
-				//height += (0.5f * noise.GetSimplex(8 * globalX, 8 * globalZ)) + 0.25f;
-				int r = rand() % 32;
-				colorR = (160 + r) / 256.f;
-				colorG = (160 + r) / 256.f;
-				colorB = (160 + r) / 256.f;
-			} else {
-				//height += (0.5f * noise.GetSimplex(8 * globalX, 8 * globalZ)) + 0.25f;
-				colorR = (230 + rand() % 16) / 256.f;
-				colorG = (230 + rand() % 16) / 256.f;
-				colorB = 1;
-			}
-
-			height += 1.75;
-			height *= 0.4f;
-			height = powf(height, 4.6);
-			height *= 10;
-
-			vertices[i] = {fx, height, fz, colorR, colorG, colorB, 0, 0, 0};
-			if (x < chunkSize && z < chunkSize) {
-				vertices[i + chunkSize + 1] = {fx, height, fz, colorR, colorG, colorB, 0, 0, 0};
-			}
-			i += 1;
-		}
-		i += chunkSize;
+	float colorR = 0, colorG = 0, colorB = 0;
+	if (height < -0.9f) {
+		float r = rand() % 24 / 256.f;
+		colorR = 0.407f * (1 + r);
+		colorG = 0.427f * (1 + r);
+		colorB = 0.878f * (1 + r);
+	} else if (height < 0.5f) {
+		//float r = rand() % 24 / 256.f;
+		//colorR = 0.4140625f * (1 + r);
+		//colorG = 0.6875f * (1 + r);
+		//colorB = 0.296875f * (1 + r);
+		colorR = 0.4140625f;
+		colorG = 0.6875f;
+		colorB = 0.296875f;
+	} else if (height < 1.3f) {
+		//height += (0.5f * noise.GetSimplex(8 * globalX, 8 * globalZ)) + 0.25f;
+		int r = rand() % 32;
+		colorR = (160 + r) / 256.f;
+		colorG = (160 + r) / 256.f;
+		colorB = (160 + r) / 256.f;
+	} else {
+		//height += (0.5f * noise.GetSimplex(8 * globalX, 8 * globalZ)) + 0.25f;
+		colorR = (230 + rand() % 16) / 256.f;
+		colorG = (230 + rand() % 16) / 256.f;
+		colorB = 1;
 	}
 
-	for (int x = 0; x < chunkSize; ++x) {
-		for (int z = 0; z < chunkSize; ++z) {
-			unsigned int v = x * (2 * (chunkSize + 1) - 1) + (chunkSize + 1) + z;
-			unsigned int quad[] = {
-				v + chunkSize + 1, v - chunkSize, v,
-				v,                 v + chunkSize, v + chunkSize + 1
-			};
-			// compute normals
-			for (int i = 0; i < 2; ++i) {
-				glm::vec3 normal = triangleNormal(
-						glm::vec3(vertices[quad[3*i]].x, vertices[quad[3*i]].y, vertices[quad[3*i]].z),
-						glm::vec3(vertices[quad[3*i+1]].x, vertices[quad[3*i+1]].y, vertices[quad[3*i+1]].z),
-						glm::vec3(vertices[quad[3*i+2]].x, vertices[quad[3*i+2]].y, vertices[quad[3*i+2]].z)
-				);
-				vertices[quad[3*i+2]].nx = normal.x;
-				vertices[quad[3*i+2]].ny = normal.y;
-				vertices[quad[3*i+2]].nz = normal.z;
-			}
+	//height += 1.75;
+	height += 2.25f;
+	height *= 0.4;  // do not change
+	height = powf(height, 4.6);
+	//height = powf(height, 6);
+	height *= 2.5f;
 
-			indices.insert(indices.end(), quad, quad + 6);
-		}
+	return {x, height, z, colorR, colorG, colorB, 0, 0, 0};
+}
+
+
+void Chunk::calculateNormals(vertex* v0) {
+	glm::vec3 normal = triangleNormal(
+			glm::vec3(v0[2].x, v0[2].y, v0[2].z),
+			glm::vec3(v0[1].x, v0[1].y, v0[1].z),
+			glm::vec3(v0[0].x, v0[0].y, v0[0].z)
+	);
+	for (int i = 0; i < 3; ++i) {
+		v0[i].nx = normal.x;
+		v0[i].ny = normal.y;
+		v0[i].nz = normal.z;
+	}
+}
+
+
+void Chunk::generateDelaunayTerrain() {
+	namespace pds = thinks::poisson_disk_sampling;
+
+	constexpr auto radius = 2.75f;
+	const auto min = std::array<float, 2>{{0, 0}};
+	const auto max = std::array<float, 2>{{chunkSize, chunkSize}};
+
+	const auto samples = pds::PoissonDiskSampling(radius, min, max, 30, rand());
+
+	std::vector<Vector2<float>> verts(samples.size());
+	for (size_t i = 0; i < samples.size(); ++i) {
+		verts[i] = Vector2<float>(samples[i][0], samples[i][1]);
+	}
+
+	Delaunay<float> triangulation;
+	const std::vector<Triangle<float>> triangles = triangulation.triangulate(verts);
+
+	vertices = std::vector<vertex>(triangles.size() * 3);
+	indices = std::vector<unsigned int>(triangles.size() * 3);
+
+	FastNoise noise = FastNoise(47);
+	unsigned int i = 0;
+	for (auto t : triangles) {
+		vertices[i]   = generateVertex(noise, t.p1.x, t.p1.y);
+		vertices[i+1] = generateVertex(noise, t.p2.x, t.p2.y);
+		vertices[i+2] = generateVertex(noise, t.p3.x, t.p3.y);
+		calculateNormals(&vertices[i]);
+		indices[i]   = i;
+		indices[i+1] = i+1;
+		indices[i+2] = i+2;
+		i += 3;
 	}
 }

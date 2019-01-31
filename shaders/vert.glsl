@@ -4,7 +4,7 @@ uniform mat4 MVP;
 uniform vec3 lightDir = vec3(1, -1, 1);
 uniform vec3 lightColor = vec3(1, 1, 1);
 //uniform vec3 ambientLightColor = vec3(1, 1, 1);
-uniform float ambientStrength = 0.4;
+uniform float ambientStrength = 1;
 
 layout(location=0) in vec3 vPos;
 layout(location=1) in vec3 vCol;

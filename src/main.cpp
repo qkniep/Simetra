@@ -12,7 +12,8 @@ void updateControls();
 
 bool controls[6] = {false, false, false, false, false, false};
 double lastFrameTime = 0;
-float camX = Chunk::chunkSize / 2, camY = 100, camZ = -96;
+float camX = Chunk::chunkSize / 2, camY = 100, camZ = Chunk::chunkSize + 1;
+//float camX = Chunk::chunkSize / 2, camY = 100, camZ = Chunk::chunkSize / 2;
 float camSpeed = 15;
 
 World world(100);
@@ -64,7 +65,8 @@ int main() {
 		ratio = width / (float) height;
 		glViewport(0, 0, width, height);
 
-		glClearColor(0.074f, 0.058f, 0.250f, 1.f);
+		//glClearColor(0.074f, 0.058f, 0.250f, 1.f);
+		glClearColor(0.35f, 0.25f, 0.05f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(shader);
@@ -72,7 +74,8 @@ int main() {
 		m = glm::mat4(1);
 		v = glm::lookAtLH(
 			glm::vec3(camX, camY, camZ),               // camera position
-			glm::vec3(camX, camY - .75f, camZ + .25f), // position to look at
+			glm::vec3(camX, camY - .75f, camZ + .3f),  // position to look at
+			//glm::vec3(camX, camY - .9f, camZ + .1f),         // position to look at
 			glm::vec3(0, 1, 0)                         // up direction
 		);
 		p = glm::perspectiveLH(glm::radians(45.f), ratio, .1f, 512.f);
@@ -86,7 +89,7 @@ int main() {
 		glfwSwapBuffers(window);
 
 		//TEMPORARY WORKAROUND for not rendering before window was changed
-		if(!macMoved) {
+		if (!macMoved) {
 			int x, y;
 			glfwGetWindowPos(window, &x, &y);
 			glfwSetWindowPos(window, ++x, y);
