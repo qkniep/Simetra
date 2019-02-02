@@ -12,8 +12,8 @@ void updateControls();
 
 bool controls[6] = {false, false, false, false, false, false};
 double lastFrameTime = 0;
-float camX = Chunk::chunkSize / 2, camY = 100, camZ = Chunk::chunkSize + 1;
-//float camX = Chunk::chunkSize / 2, camY = 100, camZ = Chunk::chunkSize / 2;
+//float camX = Chunk::chunkSizeX / 2, camY = 100, camZ = Chunk::chunkSizeZ + 1;
+float camX = Chunk::chunkSizeX / 2, camY = 100, camZ = -30;
 float camSpeed = 15;
 
 World world(100);
@@ -109,7 +109,7 @@ void updateControls() {
 	//if (controls[0]) {
 		float oldCamZ = camZ;
 		camZ += camSpeed * deltaTime;
-		if ((int) oldCamZ % Chunk::chunkSize == Chunk::chunkSize - 1 && (int) camZ % Chunk::chunkSize == 0) {
+		if ((int) oldCamZ % Chunk::chunkSizeZ == Chunk::chunkSizeZ - 1 && (int) camZ % Chunk::chunkSizeZ == 0) {
 			world.loadNextRow();
 		}
 	//}

@@ -7,8 +7,10 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/normal.hpp>
 
-#include "thinks/poisson_disk_sampling/poisson_disk_sampling.hpp"
 #include "delabella/delabella.h"
+#include "thinks/poisson_disk_sampling/poisson_disk_sampling.hpp"
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tinyobjloader/tiny_obj_loader.h"
 
 
 Chunk::Chunk(int x, int z) : xPos(x), zPos(z), loaded(false) {
@@ -28,6 +30,7 @@ void Chunk::load() {
 	if (loaded) return;
 
 	generateDelaunayTerrain();
+	placeTrees();
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -56,7 +59,7 @@ void Chunk::render(GLuint mvp_loc, glm::mat4 mvp) {
 	glBindVertexArray(vao);
 
 	glm::mat4 m(1);
-	m = glm::translate(m, glm::vec3(xPos * chunkSize, 0, zPos * chunkSize));
+	m = glm::translate(m, glm::vec3(xPos * chunkSizeX, 0, zPos * chunkSizeZ));
 	mvp = mvp * m;
 	glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
 	glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, (void*) 0);
@@ -64,8 +67,8 @@ void Chunk::render(GLuint mvp_loc, glm::mat4 mvp) {
 
 
 vertex Chunk::generateVertex(const FastNoise& noise, float x, float z) {
-	float globalX = xPos * chunkSize + x;
-	float globalZ = zPos * chunkSize + z;
+	float globalX = xPos * chunkSizeX + x;
+	float globalZ = zPos * chunkSizeZ + z;
 
 	float height = noise.GetSimplex(4 * globalX, 4 * globalZ)
 		+ .75f  * noise.GetSimplex(8 * globalX, 8 * globalZ)
@@ -127,7 +130,7 @@ void Chunk::generateDelaunayTerrain() {
 
 	constexpr auto radius = 2.75f;
 	const auto min = std::array<float, 2>{{0, 0}};
-	const auto max = std::array<float, 2>{{chunkSize, chunkSize}};
+	const auto max = std::array<float, 2>{{chunkSizeX, chunkSizeZ}};
 
 	const auto samples = pds::PoissonDiskSampling(radius, min, max, 30, rand());
 
@@ -154,5 +157,53 @@ void Chunk::generateDelaunayTerrain() {
 		}
 		calculateNormals(&indices[i]);
 		i += 3;
+	}
+
+	idb->Destroy();
+}
+
+
+void Chunk::placeTrees() {
+	tinyobj::attrib_t attrib;
+	std::vector<tinyobj::shape_t> shapes;
+	std::vector<tinyobj::material_t> materials;
+
+	std::string warn;
+	std::string err;
+
+	bool ret = tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, "models/tree_blocks.obj", "models/", true);
+
+	if (!warn.empty()) {
+		std::cout << "WARNING: " << warn << std::endl;
+	}
+
+	if (!err.empty()) {
+		std::cerr << "ERROR: " << err << std::endl;
+	}
+
+	if (!ret) {
+		std::cout << "ERROR: Failed to load .obj model." << std::endl;
+	}
+
+	namespace pds = thinks::poisson_disk_sampling;
+
+	constexpr auto radius = 7.5f;
+	const auto min = std::array<float, 2>{{0, 0}};
+	const auto max = std::array<float, 2>{{chunkSizeX, chunkSizeZ}};
+
+	const auto samples = pds::PoissonDiskSampling(radius, min, max, 30, rand());
+
+	for (auto x : samples) {
+		for (auto s : shapes) {
+			std::cout << materials[s.mesh.material_ids[0]].diffuse[0] << std::endl;
+			for (size_t i = 0; i < s.mesh.indices.size(); ++i) {
+				indices.push_back(s.mesh.indices[i].vertex_index + vertices.size());
+			}
+		}
+
+		for (size_t i = 0; i < attrib.vertices.size() / 3; ++i) {
+			auto *p = &attrib.vertices[3*i];
+			vertices.push_back({*p + x[0], *(p+1), *(p+2) + x[1], 0.352941f, 0.768628f, 0.713726f, 0, 0, 0});
+		}
 	}
 }

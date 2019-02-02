@@ -11,8 +11,8 @@ class World {
 	int seed;
 	std::vector<Chunk*> allChunks;
 	std::queue<Chunk*> loadingChunks;
-	int deletePtr;
-	int currentRow;
+	unsigned int deleteIndex;
+	unsigned int currentRow;
 
 public:
 	World(int s);
