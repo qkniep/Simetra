@@ -19,7 +19,7 @@ struct vertex {
 
 class Chunk {
 public:
-	static const int chunkSize = 48;
+	static const int chunkSize = 128;
 
 private:
 	int xPos, zPos;
@@ -39,7 +39,7 @@ public:
 
 private:
 	vertex generateVertex(const FastNoise& noise, float x, float z);
-	void calculateNormals(vertex* v0);
+	void calculateNormals(unsigned int* v0);
 	void generateDelaunayTerrain();
 };
 

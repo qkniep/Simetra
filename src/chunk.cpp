@@ -8,8 +8,7 @@
 #include <glm/gtx/normal.hpp>
 
 #include "thinks/poisson_disk_sampling/poisson_disk_sampling.hpp"
-#include "Bl4ckb0ne/delaunay_triangulation/delaunay.h"
-
+#include "delabella/delabella.h"
 
 
 Chunk::Chunk(int x, int z) : xPos(x), zPos(z), loaded(false) {
@@ -28,7 +27,6 @@ Chunk::~Chunk() {
 void Chunk::load() {
 	if (loaded) return;
 
-	//generateTerrain();
 	generateDelaunayTerrain();
 
 	glGenVertexArrays(1, &vao);
@@ -112,17 +110,15 @@ vertex Chunk::generateVertex(const FastNoise& noise, float x, float z) {
 }
 
 
-void Chunk::calculateNormals(vertex* v0) {
+void Chunk::calculateNormals(unsigned int* i0) {
 	glm::vec3 normal = triangleNormal(
-			glm::vec3(v0[2].x, v0[2].y, v0[2].z),
-			glm::vec3(v0[1].x, v0[1].y, v0[1].z),
-			glm::vec3(v0[0].x, v0[0].y, v0[0].z)
+			glm::vec3(vertices[*i0].x,     vertices[*i0].y,     vertices[*i0].z),
+			glm::vec3(vertices[*(i0+1)].x, vertices[*(i0+1)].y, vertices[*(i0+1)].z),
+			glm::vec3(vertices[*(i0+2)].x, vertices[*(i0+2)].y, vertices[*(i0+2)].z)
 	);
-	for (int i = 0; i < 3; ++i) {
-		v0[i].nx = normal.x;
-		v0[i].ny = normal.y;
-		v0[i].nz = normal.z;
-	}
+	vertices[*(i0+2)].nx = normal.x;
+	vertices[*(i0+2)].ny = normal.y;
+	vertices[*(i0+2)].nz = normal.z;
 }
 
 
@@ -135,27 +131,28 @@ void Chunk::generateDelaunayTerrain() {
 
 	const auto samples = pds::PoissonDiskSampling(radius, min, max, 30, rand());
 
-	std::vector<Vector2<float>> verts(samples.size());
+	vertices = std::vector<vertex>(samples.size());
+	FastNoise noise = FastNoise(47);
 	for (size_t i = 0; i < samples.size(); ++i) {
-		verts[i] = Vector2<float>(samples[i][0], samples[i][1]);
+		vertices[i] = generateVertex(noise, samples[i][0], samples[i][1]);
 	}
 
-	Delaunay<float> triangulation;
-	const std::vector<Triangle<float>> triangles = triangulation.triangulate(verts);
+	IDelaBella* idb = IDelaBella::Create();
+	const int numIndices = idb->Triangulate(vertices.size(), &vertices.data()->x, &vertices.data()->z, sizeof(struct vertex));
 
-	vertices = std::vector<vertex>(triangles.size() * 3);
-	indices = std::vector<unsigned int>(triangles.size() * 3);
+	indices = std::vector<unsigned int>(numIndices);
 
-	FastNoise noise = FastNoise(47);
 	unsigned int i = 0;
-	for (auto t : triangles) {
-		vertices[i]   = generateVertex(noise, t.p1.x, t.p1.y);
-		vertices[i+1] = generateVertex(noise, t.p2.x, t.p2.y);
-		vertices[i+2] = generateVertex(noise, t.p3.x, t.p3.y);
-		calculateNormals(&vertices[i]);
-		indices[i]   = i;
-		indices[i+1] = i+1;
-		indices[i+2] = i+2;
+	for (auto t = idb->GetFirstDelaunayTriangle(); t != nullptr; t = t->next) {
+		indices[i]   = t->v[2]->i;
+		indices[i+1] = t->v[1]->i;
+		indices[i+2] = t->v[0]->i;
+		auto *v = &vertices[indices[i+2]];
+		if (v->nx != 0 || v->ny != 0 || v->nz != 0) {
+			indices[i+2] = vertices.size();
+			vertices.push_back(*v);
+		}
+		calculateNormals(&indices[i]);
 		i += 3;
 	}
 }

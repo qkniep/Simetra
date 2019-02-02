@@ -65,8 +65,7 @@ int main() {
 		ratio = width / (float) height;
 		glViewport(0, 0, width, height);
 
-		//glClearColor(0.074f, 0.058f, 0.250f, 1.f);
-		glClearColor(0.35f, 0.25f, 0.05f, 1.f);
+		glClearColor(0.074f, 0.058f, 0.250f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		glUseProgram(shader);
