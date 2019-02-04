@@ -8,7 +8,7 @@ Low-Poly Procedural Terrain Generation
 
 ## Getting Started
 
-### 1. Install [GLFW](https://www.glfw.org/) and [glm](https://glm.g-truc.net/)
+### 1. Install [GLFW](https://www.glfw.org/) and [GLM](https://glm.g-truc.net/)
 If you are on macOS and have homebrew installed you should be able to do this with:
 ```shell
 brew install glfw
@@ -36,5 +36,5 @@ Third Party Libraries:
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.\
 Copyright 2019 © Q. Kniep, A. Harrisson

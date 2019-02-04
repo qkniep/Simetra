@@ -13,10 +13,10 @@ void updateControls();
 bool controls[6] = {false, false, false, false, false, false};
 double lastFrameTime = 0;
 //float camX = Chunk::chunkSizeX / 2, camY = 100, camZ = Chunk::chunkSizeZ + 1;
-float camX = Chunk::chunkSizeX / 2, camY = 100, camZ = -30;
-float camSpeed = 15;
+float camX = Chunk::chunkSizeX / 2, camY = 30, camZ = 5;
+const float camSpeed = 15;
 
-World world(100);
+World world(rand());
 
 
 int main() {
@@ -65,27 +65,9 @@ int main() {
 		ratio = width / (float) height;
 		glViewport(0, 0, width, height);
 
-		glClearColor(0.074f, 0.058f, 0.250f, 1.f);
+		//glClearColor(0.074f, 0.058f, 0.250f, 1.f);
+		glClearColor(0.808f, 0.933f, 1.f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		glUseProgram(shader);
-
-		m = glm::mat4(1);
-		v = glm::lookAtLH(
-			glm::vec3(camX, camY, camZ),               // camera position
-			glm::vec3(camX, camY - .75f, camZ + .3f),  // position to look at
-			//glm::vec3(camX, camY - .9f, camZ + .1f),         // position to look at
-			glm::vec3(0, 1, 0)                         // up direction
-		);
-		p = glm::perspectiveLH(glm::radians(45.f), ratio, .1f, 512.f);
-		mvp = p * v * m;
-		glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-		world.render(mvp_loc, mvp);
-
-		glfwPollEvents();
-		updateControls();
-		glfwSwapBuffers(window);
 
 		//TEMPORARY WORKAROUND for not rendering before window was changed
 		if (!macMoved) {
@@ -95,6 +77,27 @@ int main() {
 			macMoved = true;
 		}
 		//END TEMP WORKAROUND
+
+		glUseProgram(shader);
+
+		m = glm::mat4(1);
+		v = glm::lookAtLH(
+			glm::vec3(camX, camY, camZ),               // camera position
+			glm::vec3(camX, camY - .25f, camZ + 1.f),  // position to look at
+			//glm::vec3(camX, camY - .9f, camZ + .1f),         // position to look at
+			glm::vec3(0, 1, 0)                         // up direction
+		);
+		p = glm::perspectiveLH(glm::radians(45.f), ratio, .1f, 512.f);
+		mvp = p * v * m;
+		//glm::mat4 mvp = camera.getMVP();
+		glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
+
+		world.render(mvp_loc, mvp);
+
+		glfwPollEvents();
+		updateControls();
+		glfwSwapBuffers(window);
+
 	}
 
 	glfwTerminate();
