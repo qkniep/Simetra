@@ -1,4 +1,4 @@
-PROGRAM     = Artemis
+PROGRAM     = Simetra
 CXX         = g++
 
 SRCDIR      = src
