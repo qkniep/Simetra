@@ -8,7 +8,7 @@ uniform vec3 lightDir = vec3(1, -1, 1);
 uniform vec3 lightColor = vec3(1, 1, 1);
 //uniform vec3 ambientLightColor = vec3(1, 1, 1);
 uniform float ambientStrength = 1;
-uniform vec3 bgColor = vec3(0.808, 0.933, 1.0);
+uniform vec3 bgColor = vec3(0.694, 0.78, 0.925);
 
 layout(location=0) in vec3 vPos;
 layout(location=1) in vec3 vCol;

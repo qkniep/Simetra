@@ -60,6 +60,7 @@ void World::load() {
 
 	generateDelaunayTerrain(seed);
 	//placeTrees(seed);
+	//addWater();
 
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -118,21 +119,50 @@ vertex World::generateVertex(const FastNoise& noise, float x, float z) {
 
 	float colorR = 0, colorG = 0, colorB = 0;
 	if (height < -0.9f) {
-		colorR = 0.407f;
+		//dark
+		//colorR = 0.407f;
+		//colorG = 0.427f;
+		//colorB = 0.878f;
+		//light
+		//colorR = 0.4f;
+		//colorG = 0.686f;
+		//colorB = 1.f;
+		//
+		//colorR = 0.431f;
+		//colorG = 0.612f;
+		//colorB = 0.812f;
+		colorR = 0.141f;
 		colorG = 0.427f;
-		colorB = 0.878f;
-	} else if (height < 0.4f) {
-		colorR = 0.4140625f;
-		colorG = 0.6875f;
-		colorB = 0.296875f;
+		colorB = 0.639f;
+		height = -0.9f;
+	} else if (height < 0) {
+		//colorR = 0.4140625f;
+		//colorG = 0.6875f;
+		//colorB = 0.296875f;
+		//
+		//colorR = 0.431f;
+		//colorG = 0.698f;
+		//colorB = 0.098f;
+		//
+		//colorR = 0.298f;
+		//colorG = 0.733f;
+		//colorB = 0.09f;
+		colorR = 0.416f;
+		colorG = 0.6f;
+		colorB = 0.2f;
+	//} else if (height < 0.4f) {
 		//colorR = 0.239f;
 		//colorG = 0.369f;
 		//colorB = 0.098f;
+		//
+		//colorR = 0.455f;
+		//colorG = 0.498f;
+		//colorB = 0.4f;
 	} else if (height < 1.1f) {
 		//height += (0.5f * noise.GetSimplex(8 * globalX, 8 * globalZ)) + 0.25f;
-		colorR = 160 / 256.f;
-		colorG = 160 / 256.f;
-		colorB = 160 / 256.f;
+		colorR = 128 / 256.f;
+		colorG = 128 / 256.f;
+		colorB = 128 / 256.f;
 	} else {
 		//height += (0.5f * noise.GetSimplex(8 * globalX, 8 * globalZ)) + 0.25f;
 		colorR = 230 / 256.f;
@@ -238,3 +268,17 @@ void World::placeTrees(int /*seed*/) {
 		}
 	}*/
 }
+
+
+/*void World::addWater() {
+	const unsigned int vs = (unsigned int) vertices.size();
+	unsigned int i[6] = {
+		vs, vs + 1, vs + 2,
+		vs, vs + 3, vs + 1,
+	};
+	indices.insert(indices.end(), i, i+6);
+	vertices.push_back({-200.f, .35f, 0,     0, 0, 1, 0, 1, 0});
+	vertices.push_back({ 200.f, .35f, 100.f, 0, 0, 1, 0, 1, 0});
+	vertices.push_back({-200.f, .35f, 100.f, 0, 0, 1, 0, 1, 0});
+	vertices.push_back({ 200.f, .35f, 0,     0, 0, 1, 0, 1, 0});
+}*/

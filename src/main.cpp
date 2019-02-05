@@ -16,7 +16,12 @@ double lastFrameTime = 0;
 float camX = Chunk::chunkSizeX / 2, camY = 30, camZ = 5;
 const float camSpeed = 15;
 
-World world(rand());
+static int getRand() {
+	srand(time(0));
+	return rand();
+}
+
+World world(getRand());
 
 
 int main() {
@@ -65,8 +70,8 @@ int main() {
 		ratio = width / (float) height;
 		glViewport(0, 0, width, height);
 
-		//glClearColor(0.074f, 0.058f, 0.250f, 1.f);
-		glClearColor(0.808f, 0.933f, 1.f, 1.f);
+		//glClearColor(0.808f, 0.933f, 1.f, 1.f);
+		glClearColor(0.694f, 0.78f, 0.925f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		//TEMPORARY WORKAROUND for not rendering before window was changed

@@ -44,6 +44,7 @@ private:
 	void calculateNormals(unsigned int* v0);
 	void generateDelaunayTerrain(int seed);
 	void placeTrees(int seed);
+	//void addWater();
 };
 
 #endif  // WORLD_HPP
