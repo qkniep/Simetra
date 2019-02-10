@@ -1,7 +1,6 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
-#include <queue>
 #include <vector>
 
 #include <GL/glew.h>

@@ -15,20 +15,31 @@
 using namespace std;
 
 
-GLuint loadShaders(const char* vertexFilePath, const char* fragmentFilePath) {
+bool ShaderProgram::load(const char* vertexFilePath, const char* fragmentFilePath) {
 	// Create shaders
 	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
 	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
 
-	if (!loadShaderFromFile(vertexShaderID, vertexFilePath)) return 0;
-	if (!loadShaderFromFile(fragmentShaderID, fragmentFilePath)) return 0;
+	if (!loadShaderFromFile(vertexShaderID, vertexFilePath)) return false;
+	if (!loadShaderFromFile(fragmentShaderID, fragmentFilePath)) return false;
 
 	printf("Linking program\n");
-	return linkProgram(vertexShaderID, fragmentShaderID);
+	linkProgram(vertexShaderID, fragmentShaderID);
+	return true;
 }
 
 
-bool loadShaderFromFile(const GLuint shaderID, const char* filePath) {
+void ShaderProgram::use() {
+	glUseProgram(programID);
+}
+
+
+GLuint ShaderProgram::getProgramID() {
+	return programID;
+}
+
+
+bool ShaderProgram::loadShaderFromFile(const GLuint shaderID, const char* filePath) {
 	std::string shaderCode;
 	if (!readShaderCodeFromFile(shaderCode, filePath)) return false;
 
@@ -39,7 +50,7 @@ bool loadShaderFromFile(const GLuint shaderID, const char* filePath) {
 }
 
 
-bool readShaderCodeFromFile(string& shaderCode, const char* filePath) {
+bool ShaderProgram::readShaderCodeFromFile(string& shaderCode, const char* filePath) {
 	ifstream shaderStream(filePath, ios::in);
 	if (!shaderStream.is_open()) {
 		printf("ERROR (shader.cpp: loadShaderFromFile) Failed to open %s.\n", filePath);
@@ -55,7 +66,7 @@ bool readShaderCodeFromFile(string& shaderCode, const char* filePath) {
 }
 
 
-bool compileShader(const GLuint shaderID, const string& shaderCode) {
+bool ShaderProgram::compileShader(const GLuint shaderID, const string& shaderCode) {
 	char const* sourcePointer = shaderCode.c_str();
 	glShaderSource(shaderID, 1, &sourcePointer, nullptr);
 	glCompileShader(shaderID);
@@ -75,7 +86,7 @@ bool compileShader(const GLuint shaderID, const string& shaderCode) {
 }
 
 
-GLuint linkProgram(const GLuint vertexShaderID, const GLuint fragmentShaderID) {
+void ShaderProgram::linkProgram(const GLuint vertexShaderID, const GLuint fragmentShaderID) {
 	GLuint programID = glCreateProgram();
 	glAttachShader(programID, vertexShaderID);
 	glAttachShader(programID, fragmentShaderID);
@@ -97,5 +108,5 @@ GLuint linkProgram(const GLuint vertexShaderID, const GLuint fragmentShaderID) {
 	glDeleteShader(vertexShaderID);
 	glDeleteShader(fragmentShaderID);
 
-	return programID;
+	this->programID = programID;
 }

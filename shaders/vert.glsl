@@ -1,7 +1,7 @@
 #version 410
 
-#define FOG_START 160
-#define FOG_END 180
+#define FOG_START 500
+#define FOG_END 560
 
 uniform mat4 MVP;
 uniform vec3 lightDir = vec3(1, -1, 1);

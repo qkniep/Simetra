@@ -6,8 +6,8 @@
 
 class Chunk {
 public:
-	static const int chunkSizeX = 96;
-	static const int chunkSizeZ = 64;
+	static const int chunkSizeX = 192;
+	static const int chunkSizeZ = 192;
 
 private:
 	int xPos, zPos;

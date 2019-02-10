@@ -8,7 +8,7 @@ SRCS        := $(shell find $(SRCDIR) -name *.cpp)
 OBJS        := $(SRCS:%=$(BUILDDIR)/%.o)
 DEPS        := $(OBJS:.o=.d)
 
-CXXFLAGS    = -g -Wall -Wextra -pthread -std=c++11
+CXXFLAGS    = -g -Wall -Wextra -pthread -std=c++11 -O3
 LDLIBS      = -framework OpenGL -lGLEW -lglfw3 -lm -framework Cocoa \
               -framework IOKit -framework CoreFoundation -framework CoreVideo
 

@@ -3,109 +3,53 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "camera.hpp"
 #include "shader.hpp"
+#include "window.hpp"
 #include "world.hpp"
+
+#define AUTO_SCROLL true
 
 
 void keyCallback(GLFWwindow* window, int key, int scan, int action, int mods);
+void sizeCallback(GLFWwindow* window, int width, int height);
 void updateControls();
 
-bool controls[6] = {false, false, false, false, false, false};
+struct {
+	bool forward, back;
+	bool left, right;
+	bool up, down;
+} controls;
 double lastFrameTime = 0;
-//float camX = Chunk::chunkSizeX / 2, camY = 100, camZ = Chunk::chunkSizeZ + 1;
-float camX = Chunk::chunkSizeX / 2, camY = 30, camZ = 5;
-const float camSpeed = 15;
+const float camSpeed = 30;
 
-static int getRand() {
-	srand(time(0));
-	return rand();
-}
-
-World world(getRand());
+World world(time(0));
+Camera camera = Camera(Chunk::chunkSizeX / 2, 30, 5);
 
 
 int main() {
-	static bool macMoved = false;  // part of TEMPORARY WORKAROUND
-
-	//TODO: write wrapper around window
-	GLFWwindow* window = nullptr;
-	GLuint mvp_loc, shader;
-
-	if (!glfwInit()) {
-		fprintf(stderr, "ERROR: could not start GLFW3\n");
-		return 1;
-	}
-
-	//using 3.2 here automatically loads newest available version
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-	window = glfwCreateWindow(640, 480, "Simetra", nullptr, nullptr);
-	if (!window) {
-		fprintf(stderr, "ERROR: could not open window with GLFW3\n");
-		glfwTerminate();
-		return 1;
-	}
-	glfwMakeContextCurrent(window);
-	glfwSetKeyCallback(window, keyCallback);
-
-	glewExperimental = GL_TRUE;  // prevent SEGFAULT
-	glewInit();                  // on macOS
-
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	GLuint mvp_loc;
+	Window window;
+	window.setKeyCallback(keyCallback);
+	window.setSizeCallback(sizeCallback);
 
 	world.load();
 
-	shader = loadShaders("shaders/vert.glsl", "shaders/frag.glsl");
-	mvp_loc = glGetUniformLocation(shader, "MVP");
+	ShaderProgram shader;
+	shader.load("shaders/vert.glsl", "shaders/frag.glsl");
+	mvp_loc = glGetUniformLocation(shader.getProgramID(), "MVP");
 
-	while (!glfwWindowShouldClose(window)) {
-		float ratio;
-		int width, height;
-		glm::mat4 m, v, p, mvp;
-		glfwGetFramebufferSize(window, &width, &height);
-		ratio = width / (float) height;
-		glViewport(0, 0, width, height);
-
-		//glClearColor(0.808f, 0.933f, 1.f, 1.f);
+	while (window.alive()) {
 		glClearColor(0.694f, 0.78f, 0.925f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//TEMPORARY WORKAROUND for not rendering before window was changed
-		if (!macMoved) {
-			int x, y;
-			glfwGetWindowPos(window, &x, &y);
-			glfwSetWindowPos(window, ++x, y);
-			macMoved = true;
-		}
-		//END TEMP WORKAROUND
+		shader.use();
+		glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(camera.getMVP()));
+		world.render(mvp_loc, camera.getMVP());
 
-		glUseProgram(shader);
-
-		m = glm::mat4(1);
-		v = glm::lookAtLH(
-			glm::vec3(camX, camY, camZ),               // camera position
-			glm::vec3(camX, camY - .25f, camZ + 1.f),  // position to look at
-			//glm::vec3(camX, camY - .9f, camZ + .1f),         // position to look at
-			glm::vec3(0, 1, 0)                         // up direction
-		);
-		p = glm::perspectiveLH(glm::radians(45.f), ratio, .1f, 512.f);
-		mvp = p * v * m;
-		//glm::mat4 mvp = camera.getMVP();
-		glUniformMatrix4fv(mvp_loc, 1, GL_FALSE, glm::value_ptr(mvp));
-
-		world.render(mvp_loc, mvp);
-
-		glfwPollEvents();
+		window.update();
 		updateControls();
-		glfwSwapBuffers(window);
-
 	}
-
-	glfwTerminate();
 
 	return 0;
 }
@@ -114,23 +58,25 @@ int main() {
 void updateControls() {
 	double currentTime = glfwGetTime();
 	double deltaTime = currentTime - lastFrameTime;
-	//if (controls[0]) {
-		float oldCamZ = camZ;
-		camZ += camSpeed * deltaTime;
-		if ((int) oldCamZ % Chunk::chunkSizeZ == Chunk::chunkSizeZ - 1 && (int) camZ % Chunk::chunkSizeZ == 0) {
+	GLfloat d = camSpeed * deltaTime;
+	if (controls.forward || AUTO_SCROLL) {
+		GLfloat oldCamZ = camera.getZ();
+		camera.move(0, 0, d);
+		if ((int) oldCamZ % Chunk::chunkSizeZ == Chunk::chunkSizeZ - 1
+				&& (int) camera.getZ() % Chunk::chunkSizeZ == 0) {
 			world.loadNextRow();
 		}
-	//}
-	if (controls[1])
-		camZ -= camSpeed * deltaTime;
-	if (controls[2])
-		camX += camSpeed * deltaTime;
-	if (controls[3])
-		camX -= camSpeed * deltaTime;
-	if (controls[4])
-		camY += camSpeed * deltaTime;
-	if (controls[5])
-		camY -= camSpeed * deltaTime;
+	}
+	if (controls.back)
+		camera.move(0, 0, -d);
+	if (controls.right)
+		camera.move(d, 0, 0);
+	if (controls.left)
+		camera.move(-d, 0, 0);
+	if (controls.up)
+		camera.move(0, d, 0);
+	if (controls.down)
+		camera.move(0, -d, 0);
 	lastFrameTime = currentTime;
 }
 
@@ -139,25 +85,34 @@ void keyCallback(GLFWwindow* /*window*/, int key, int /*scan*/, int action, int 
 	switch (key) {
 		case GLFW_KEY_W:
 		case GLFW_KEY_UP:
-			controls[0] = (action != GLFW_RELEASE);
+			controls.forward = (action != GLFW_RELEASE);
 			break;
 		case GLFW_KEY_S:
 		case GLFW_KEY_DOWN:
-			controls[1] = (action != GLFW_RELEASE);
+			controls.back = (action != GLFW_RELEASE);
 			break;
 		case GLFW_KEY_D:
 		case GLFW_KEY_RIGHT:
-			controls[2] = (action != GLFW_RELEASE);
+			controls.right = (action != GLFW_RELEASE);
 			break;
 		case GLFW_KEY_A:
 		case GLFW_KEY_LEFT:
-			controls[3] = (action != GLFW_RELEASE);
+			controls.left = (action != GLFW_RELEASE);
 			break;
 		case GLFW_KEY_SPACE:
-			controls[4] = (action != GLFW_RELEASE);
+			controls.up = (action != GLFW_RELEASE);
 			break;
 		case GLFW_KEY_C:
-			controls[5] = (action != GLFW_RELEASE);
+			controls.down = (action != GLFW_RELEASE);
 			break;
 	}
+}
+
+
+void sizeCallback(GLFWwindow* /*window*/, int width, int height) {
+	float ratio;
+	ratio = width / (float) height;
+	glViewport(0, 0, width, height);
+
+	camera.setAspectRatio(ratio);
 }
