@@ -35,6 +35,7 @@ public:
 
 	void load();
 	void render(GLuint mvp_loc, glm::mat4 mvp);
+	void setSeed(int s);
 
 	void loadNextRow();
 

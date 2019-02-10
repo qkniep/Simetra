@@ -105,6 +105,9 @@ void keyCallback(GLFWwindow* /*window*/, int key, int /*scan*/, int action, int 
 		case GLFW_KEY_C:
 			controls.down = (action != GLFW_RELEASE);
 			break;
+		case GLFW_KEY_N:
+			world.setSeed(time(0));
+			break;
 	}
 }
 

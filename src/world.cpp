@@ -92,6 +92,11 @@ void World::render(GLuint mvp_loc, glm::mat4 mvp) {
 }
 
 
+void World::setSeed(int s) {
+	seed = s;
+}
+
+
 void World::loadNextRow() {
 	// Delete out-of-view chunks.
 	for (unsigned int i = deleteIndex; i < deleteIndex + 7; ++i) {
@@ -117,21 +122,26 @@ void World::loadNextRow() {
 
 
 vertex World::generateVertex(const FastNoise& noise, float x, float z) {
-	float height = noise.GetSimplex(1 * x, 1 * z)
+	float height = 2.5f * fmaxf(noise.GetSimplex(0.5f * x, 0.5f * z), 0.f)
+		+ noise.GetSimplex(1 * x, 1 * z)
 		+ .75f  * noise.GetSimplex(2 * x, 2 * z)
 		+ .5f * noise.GetSimplex(4 * x, 4 * z);
 
 	float colorR = 0, colorG = 0, colorB = 0;
-	if (height < -0.9f) {
-		colorR = 0.141f;
-		colorG = 0.427f;
-		colorB = 0.639f;
+	if (height < -0.7f) {          // water level
+		colorR = 0.145f;
+		colorG = 0.416f;
+		colorB = 0.616f;
 		height = -0.9f;
-	} else if (height < 0) {
-		colorR = 0.416f;
+	} else if (height < -0.25f) {  // dark/light green
+		colorR = 0.098f;
+		colorG = 0.549f;
+		colorB = 0.098f;
+	} else if (height < 1.25f) {   // green/mountain
+		colorR = 0.196f;
 		colorG = 0.6f;
-		colorB = 0.2f;
-	} else if (height < 1.1f) {
+		colorB = 0.196f;
+	} else if (height < 2.4f) {    // mountain/snow
 		colorR = 128 / 256.f;
 		colorG = 128 / 256.f;
 		colorB = 128 / 256.f;
@@ -142,8 +152,8 @@ vertex World::generateVertex(const FastNoise& noise, float x, float z) {
 	}
 
 	height += 2.25f;             // move height above 0
-	height *= 0.4f;              // lower -> more flat, higher -> more rough
-	height = powf(height, 4.6);  // make mountains higher, rest flatter
+	height /= 3.5f;              //
+	height = powf(height, 5.f);  // make mountains higher, rest flatter
 	height *= 5.f;               // increase absolute height overall
 
 	return {x, height, z, colorR, colorG, colorB, 0, 0, 0};
