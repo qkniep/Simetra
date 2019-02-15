@@ -9,8 +9,10 @@ Low-Poly Procedural Terrain Generation
 ## Getting Started
 
 ### 1. Install [GLFW](https://www.glfw.org/) and [GLM](https://glm.g-truc.net/)
-If you are on macOS and have homebrew installed you should be able to do this with:
+This project uses OpenGL and the GLEW, GLFW, and GLM libraries. Get those, if you don't already have them.
+If you are on macOS and have [homebrew](https://brew.sh/) installed you should be able to do this with:
 ```shell
+brew install glew
 brew install glfw
 brew install glm
 ```
@@ -33,6 +35,7 @@ Third Party Libraries:
 * [FastNoise](https://github.com/Auburns/FastNoise)
 * [delabella](https://github.com/msokalski/delabella)
 * [Poisson Disk Sampling](https://github.com/thinks/poisson-disk-sampling)
+* [tinyobjloader](https://github.com/syoyo/tinyobjloader)
 
 ## License
 
