@@ -8,7 +8,7 @@ Low-Poly Procedural Terrain Generation
 
 ## Getting Started
 
-### 1. Install [GLFW](https://www.glfw.org/) and [GLM](https://glm.g-truc.net/)
+### 1. Install [GLEW](http://glew.sourceforge.net/), [GLFW](https://www.glfw.org/), and [GLM](https://glm.g-truc.net/)
 This project uses OpenGL and the GLEW, GLFW, and GLM libraries. Get those, if you don't already have them.
 If you are on macOS and have [homebrew](https://brew.sh/) installed you should be able to do this with:
 ```shell

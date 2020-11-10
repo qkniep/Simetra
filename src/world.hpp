@@ -5,9 +5,8 @@
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-
-#include "chunk.hpp"
 #include "FastNoise/FastNoise.h"
+#include "chunk.hpp"
 
 
 struct vertex {

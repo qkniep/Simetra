@@ -1,6 +1,7 @@
 #ifndef CHUNK_HPP
 #define CHUNK_HPP
 
+#include <array>
 #include <vector>
 
 

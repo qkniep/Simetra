@@ -5,7 +5,7 @@
 
 Camera::Camera(GLfloat x, GLfloat y, GLfloat z)
 		: xPos(x), yPos(y), zPos(z)
-		, fov(45.f), aspectRatio(16.f/9.f) {
+		, fov(45.f), aspectRatio(16.f/10.f) {
 	update();
 }
 
